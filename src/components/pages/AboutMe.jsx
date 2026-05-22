@@ -6,9 +6,9 @@ export default function AboutMe({ setTarget, language }) {
       title: "About Me",
       name: "I'm Sujit Daniel",
       desc1:
-        "Passionate about learning new technologies, building things, breaking them, and figuring out how to make them better.",
+        "Machine Learning Engineer at the University of Arizona College of Medicine.",
       desc2:
-        "Currently a student at the University of Arizona.",
+        "B.S. Computer Science at the University of Arizona, with minors in Mathematics and Finance.",
       cv: "Check out my CV",
       cvFile: "/images/Sujit_Daniel_Resume.pdf"
     },
@@ -16,9 +16,9 @@ export default function AboutMe({ setTarget, language }) {
       title: "Über mich",
       name: "Ich bin Sujit Daniel",
       desc1:
-        "Begeistert davon, neue Technologien zu lernen, Dinge zu bauen, sie zu zerbrechen und herauszufinden, wie man sie verbessern kann.",
+        "Machine-Learning-Ingenieur am College of Medicine der University of Arizona.",
       desc2:
-        "Derzeit Student an der University of Arizona.",
+        "Informatikstudium an der University of Arizona mit Nebenfächern Mathematik und Finanzen.",
       cv: "Meinen Lebenslauf ansehen",
       cvFile: "/images/Sujit_Daniel_Resume.pdf"
     },

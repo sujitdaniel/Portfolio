@@ -3,43 +3,70 @@ import { useGLTF } from "@react-three/drei";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
-function createBlurredTexture(sourceTexture, blurPx = 14) {
-  const image = sourceTexture?.image;
-  if (!image || !image.width || !image.height) return null;
+// Engraved "CARLOS ITO / ITO210" plaques in First.webp (4096 source).
+const NAME_PLAQUES = [
+  { x: 404, y: 2198, w: 200, h: 210 },
+  { x: 2600, y: 3868, w: 188, h: 210 },
+];
 
+function blurNamePlaques(texture) {
+  const image = texture?.image;
+  if (!image?.width || !image?.height) return;
+
+  const scaleX = image.width / 4096;
+  const scaleY = image.height / 4096;
   const canvas = document.createElement("canvas");
   canvas.width = image.width;
   canvas.height = image.height;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
+  if (!ctx) return;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.filter = `blur(${blurPx}px)`;
-  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-  ctx.filter = "none";
+  ctx.drawImage(image, 0, 0);
 
-  const blurred = sourceTexture.clone();
-  blurred.image = canvas;
-  blurred.needsUpdate = true;
-  return blurred;
-}
+  for (const plaque of NAME_PLAQUES) {
+    const x = Math.round(plaque.x * scaleX);
+    const y = Math.round(plaque.y * scaleY);
+    const w = Math.round(plaque.w * scaleX);
+    const h = Math.round(plaque.h * scaleY);
+    const blur = Math.max(28, Math.round(40 * scaleX));
+    const pad = blur * 2;
+    const tmp = document.createElement("canvas");
+    tmp.width = w + pad * 2;
+    tmp.height = h + pad * 2;
+    const tctx = tmp.getContext("2d");
+    if (!tctx) continue;
 
-function boxIntersectsZone(box, zoneMin, zoneMax) {
-  return (
-    box.max.x >= zoneMin.x &&
-    box.min.x <= zoneMax.x &&
-    box.max.y >= zoneMin.y &&
-    box.min.y <= zoneMax.y &&
-    box.max.z >= zoneMin.z &&
-    box.min.z <= zoneMax.z
-  );
+    tctx.filter = `blur(${blur}px)`;
+    tctx.drawImage(
+      canvas,
+      x - pad,
+      y - pad,
+      w + pad * 2,
+      h + pad * 2,
+      0,
+      0,
+      tmp.width,
+      tmp.height,
+    );
+    tctx.filter = `blur(${Math.round(blur * 0.7)}px)`;
+    tctx.drawImage(tmp, 0, 0);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.drawImage(tmp, pad, pad, w, h, x, y, w, h);
+    ctx.restore();
+  }
+
+  texture.image = canvas;
+  texture.needsUpdate = true;
 }
 
 export default function ModelLoader({ onMeshReady, onFansReady, setLoaded }) {
   const groupRef = useRef();
   const { scene: gltfScene } = useGLTF("models/3dPortfolio.glb");
   const scene = useMemo(() => gltfScene.clone(true), [gltfScene]);
-  const blurredTextureCache = useRef(new Map());
 
   const manager = new THREE.LoadingManager();
 
@@ -57,7 +84,9 @@ export default function ModelLoader({ onMeshReady, onFansReady, setLoaded }) {
 
     const loaded = {};
     for (const [key, path] of Object.entries(textureMap)) {
-      const tex = loader.load(path);
+      const tex = loader.load(path, (loadedTex) => {
+        if (key === "First") blurNamePlaques(loadedTex);
+      });
       tex.flipY = false;
       tex.colorSpace = THREE.SRGBColorSpace;
       loaded[key] = tex;
@@ -139,26 +168,6 @@ export default function ModelLoader({ onMeshReady, onFansReady, setLoaded }) {
         child.material = new THREE.MeshBasicMaterial({ color: 0xff2222 });
       } else if (child.name.includes("White")) {
         child.material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      }
-
-      // Apply localized texture blur in the stairs/booth side zone.
-      // This intentionally creates the softened neon/text look you preferred.
-      if (child.material?.map) {
-        const zoneMin = new THREE.Vector3(-5.2, -0.2, 0.4);
-        const zoneMax = new THREE.Vector3(-0.6, 2.2, 3.6);
-        const meshBox = new THREE.Box3().setFromObject(child);
-        if (boxIntersectsZone(meshBox, zoneMin, zoneMax)) {
-          const key = child.material.map.uuid;
-          if (!blurredTextureCache.current.has(key)) {
-            const blurred = createBlurredTexture(child.material.map, 16);
-            if (blurred) blurredTextureCache.current.set(key, blurred);
-          }
-          const cached = blurredTextureCache.current.get(key);
-          if (cached) {
-            child.material.map = cached;
-            child.material.needsUpdate = true;
-          }
-        }
       }
 
       // Collect fans and interactive objects

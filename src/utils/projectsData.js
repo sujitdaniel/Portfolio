@@ -90,7 +90,7 @@ export const projects = [
       ],
     },
     date: { en: "August 2025", de: "August 2025" },
-    github: "https://github.com/ItO210/3d-portfolio-website",
+    github: "https://github.com/sujitdaniel/Portfolio",
   },
 
   {
