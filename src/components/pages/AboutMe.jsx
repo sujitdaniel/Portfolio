@@ -10,7 +10,7 @@ export default function AboutMe({ setTarget, language }) {
       desc2:
         "B.S. Computer Science at the University of Arizona, with minors in Mathematics and Finance.",
       cv: "Check out my CV",
-      cvFile: "/images/Sujit_Daniel_Resume.pdf"
+      cvFile: `${import.meta.env.BASE_URL}images/Sujit_Daniel_Resume.pdf`,
     },
     de: {
       title: "Über mich",
@@ -20,7 +20,7 @@ export default function AboutMe({ setTarget, language }) {
       desc2:
         "Informatikstudium an der University of Arizona mit Nebenfächern Mathematik und Finanzen.",
       cv: "Meinen Lebenslauf ansehen",
-      cvFile: "/images/Sujit_Daniel_Resume.pdf"
+      cvFile: `${import.meta.env.BASE_URL}images/Sujit_Daniel_Resume.pdf`,
     },
   };
 
